@@ -2,6 +2,7 @@ pipeline {
     agent any
     environment {
 		REGISTRY_CREDENTIALS = 'dockerhup'
+                ANSIBLE_DIR = 'ansible'
 	}
     stages {
          stage('Docker Login') {
@@ -41,22 +42,19 @@ pipeline {
                             ./inventory.sh
                             db_endpoint=$(terraform output -raw db_endpoint)
                             export db_endpoint
-                            
-echo "$db_endpoint"
+                            echo "$db_endpoint"
                         '''    
             }
         }
         
         stage('Deploy to frontend EC2') {
             steps {
-               
                     dir(ANSIBLE_DIR) {
                         sh '''
                             cat inventory
                             ansible-playbook -i inventory frontend.yaml
                         '''
                     }
-                
             }
         }
           stage('Deploy to backend EC2') {
@@ -69,22 +67,13 @@ echo "$db_endpoint"
                             ansible-playbook -i inventory backend.yaml
                         '''
                     }
-                
             }
-        }
-          stage('Deploy to frontend EC2') {
-            steps {
-               
-                    dir(ANSIBLE_DIR) {
-                        sh '''
-                            cat inventory
-                            ansible-playbook -i inventory docker.yaml
-                        '''
-                    }
-                
-            }
-        }
-    
-      
+        }       
     }
+    post {
+     always {
+            // Clean up inventory file
+            sh 'rm -f ansible/inventory'
+        }
+}
 }
