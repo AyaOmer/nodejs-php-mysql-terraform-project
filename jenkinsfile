@@ -15,16 +15,26 @@ pipeline {
                 }
             }
         }
+  stage('Clean Workspace') {
+            steps {
+                sh 'rm -rf Laravel-php-app-backend'
+            }
+        }
+        stage('Clone Repository') {
+            steps {
+                sh 'git clone https://github.com/AyaOmer/Laravel-php-app-backend.git'
+            }
+        }
        
         stage('Build Docker Image') {
             steps {
-                sh '''  
-                git clone https://github.com/AyaOmer/Laravel-php-app-backend.git
-                # ls
-                cd  Laravel-php-app-backend
-                docker build -t ayaomer/laravel-app .
-                pwd
-                '''
+                dir('Laravel-php-app-backend') {
+                        sh '''  
+                        # ls
+                        docker build -t ayaomer/laravel-app .
+                        
+                        '''
+                }    
             }
         }
 
