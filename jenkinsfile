@@ -20,7 +20,8 @@ pipeline {
             steps {
                 sh '''  
                 git clone https://github.com/AyaOmer/Laravel-php-app-backend.git
-                ls
+                # ls
+                cd  Laravel-php-app-backend
                 docker build -t ayaomer/laravel-app .
                 pwd
                 '''
