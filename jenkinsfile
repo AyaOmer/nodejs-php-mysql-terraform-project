@@ -2,6 +2,7 @@ pipeline {
     agent any
     environment {
 		REGISTRY_CREDENTIALS = 'dockerhup'
+                ANSIBLE_DIR = 'ansible'
 	}
     stages {
          stage('Docker Login') {
@@ -14,15 +15,26 @@ pipeline {
                 }
             }
         }
+  stage('Clean Workspace') {
+            steps {
+                sh 'rm -rf Laravel-php-app-backend'
+            }
+        }
+        stage('Clone Repository') {
+            steps {
+                sh 'git clone https://github.com/AyaOmer/Laravel-php-app-backend.git'
+            }
+        }
        
         stage('Build Docker Image') {
             steps {
-                sh '''  
-                git clone https://github.com/AyaOmer/Laravel-php-app-backend.git
-                ls
-                docker build -t ayaomer/laravel-app .
-                pwd
-                '''
+                dir('Laravel-php-app-backend') {
+                        sh '''  
+                        # ls
+                        docker build -t ayaomer/laravel-app .
+                        
+                        '''
+                }    
             }
         }
 
@@ -41,22 +53,19 @@ pipeline {
                             ./inventory.sh
                             db_endpoint=$(terraform output -raw db_endpoint)
                             export db_endpoint
-                            
-echo "$db_endpoint"
+                            echo "$db_endpoint"
                         '''    
             }
         }
         
         stage('Deploy to frontend EC2') {
             steps {
-               
                     dir(ANSIBLE_DIR) {
                         sh '''
                             cat inventory
                             ansible-playbook -i inventory frontend.yaml
                         '''
                     }
-                
             }
         }
           stage('Deploy to backend EC2') {
@@ -69,22 +78,13 @@ echo "$db_endpoint"
                             ansible-playbook -i inventory backend.yaml
                         '''
                     }
-                
             }
-        }
-          stage('Deploy to frontend EC2') {
-            steps {
-               
-                    dir(ANSIBLE_DIR) {
-                        sh '''
-                            cat inventory
-                            ansible-playbook -i inventory docker.yaml
-                        '''
-                    }
-                
-            }
-        }
-    
-      
+        }       
     }
+    post {
+     always {
+            // Clean up inventory file
+            sh 'rm -f ansible/inventory'
+        }
+}
 }
