@@ -8,7 +8,7 @@ variable "ami" {
   default = "ami-0866a3c8686eaeeba"
 }
 
-variable "public_key" {
+variable "key_name" {
   description = "ssh public key"
-  default = "ayakey"
+  default = "key-pair"
 }
