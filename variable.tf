@@ -5,10 +5,10 @@ variable "region" {
 
 variable "ami" {
   type    = string 
-  default = "ami-0c94755bb95c71c99"
+  default = "ami-0866a3c8686eaeeba"
 }
 
-variable "public_key" {
+variable "key_name" {
   description = "ssh public key"
-  default = "ayakey"
+  default = "key-pair"
 }
