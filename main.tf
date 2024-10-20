@@ -5,6 +5,7 @@ resource "aws_instance" "backend" {
   security_groups = [aws_security_group.SG.id]
   subnet_id              = aws_subnet.public_subnet.id
   associate_public_ip_address = true
+  key_name                    = var.key_name
 
   tags  = {
     Name  = "Backend"
@@ -21,6 +22,7 @@ resource "aws_instance" "backend" {
 resource "aws_instance" "frontend" {
   ami           = var.ami
   instance_type = "t2.micro"
+  key_name                    = var.key_name
   security_groups = [aws_security_group.SG.id]
   subnet_id              = aws_subnet.public_subnet.id
   associate_public_ip_address = true
