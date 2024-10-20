@@ -1,10 +1,20 @@
-resource "aws_subnet" "public_subnet" {
+resource "aws_subnet" "public_subnet_1" {
     vpc_id = aws_vpc.main.id
     cidr_block = "10.0.0.0/24"
     map_public_ip_on_launch = true
     availability_zone = "us-east-1a" 
      tags = {
-    Name = "public-subnet"
+    Name = "public-subnet_1"
+  }
+  
+} 
+resource "aws_subnet" "public_subnet_2" {
+    vpc_id = aws_vpc.main.id
+    cidr_block = "10.0.1.0/24"
+    map_public_ip_on_launch = true
+    availability_zone = "us-east-1b" 
+     tags = {
+    Name = "public-subnet_2"
   }
   
 } 
@@ -39,10 +49,25 @@ resource "aws_route_table" "pub_route_table" {
   }
 }
 
-resource "aws_route_table_association" "public_rt_assoc" {
-
+resource "aws_route_table_association" "public_rt_assoc_1" {
     route_table_id = aws_route_table.pub_route_table.id
-    subnet_id = aws_subnet.public_subnet.id
+    subnet_id      = aws_subnet.public_subnet_1.id
+}
 
-  
+resource "aws_route_table_association" "public_rt_assoc_2" {
+    route_table_id = aws_route_table.pub_route_table.id
+    subnet_id      = aws_subnet.public_subnet_2.id
+}
+
+########## DB Subnet Group has two subnets from different AZs
+resource "aws_db_subnet_group" "my_db_subnet_group" {
+  name       = "my-db-subnet-group"
+  subnet_ids = [
+    aws_subnet.public_subnet_1.id,
+   aws_subnet.public_subnet_2.id,
+  ]
+
+  tags = {
+    Name = "My DB Subnet Group"
+  }
 }
