@@ -6,6 +6,10 @@ resource "aws_instance" "backend" {
   subnet_id              = aws_subnet.public_subnet.id
   associate_public_ip_address = true
   key_name                    = var.key_name
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5b7b0f5520f935b918773a8a6e115418966ce4c0
   tags  = {
     Name  = "Backend"
   }
