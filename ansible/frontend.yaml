@@ -1,42 +1,26 @@
 ---
-- name: Setup Docker and run container
+- name: Install Docker
   hosts: frontend
-  become: true
+  become: yes
   tasks:
-    - name: Update apt cache
-      ansible.builtin.apt:
-        update_cache: yes
-
-    - name: Install prerequisites
+    - name: Update apt package index
       apt:
-        name:
-          - apt-transport-https
-          - ca-certificates
-          - curl
-          - software-properties-common
-        state: present
         update_cache: yes
-
-    - name: Add Docker GPG key
-      shell: |
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-
-    - name: Add Docker repository
-      apt_repository:
-        repo: deb https://download.docker.com/linux/ubuntu focal stable
-        state: present
 
     - name: Install Docker
       apt:
-        name: docker-ce
+        name: docker.io
         state: present
-        update_cache: yes
 
-    - name: Ensure Docker service is running
+    - name: Start Docker service
       service:
         name: docker
         state: started
-        enabled: true
+
+    - name: Enable Docker service on boot
+      service:
+        name: docker
+        enabled: yes
 
     - name: Pull Uptime Kuma Docker image
       shell: |
