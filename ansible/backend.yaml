@@ -1,64 +1,57 @@
 ---
-- name: Setup Docker and run container
-  hosts: backend
-  become: true
-  vars_files:
-    - vars.yml
+- name: Install Docker
+  hosts: all
+  become: yes
   tasks:
-    - name: Update apt cache
-      ansible.builtin.apt:
-        update_cache: yes
-
-    - name: Install prerequisites
+    - name: Update apt package index
       apt:
-        name:
-          - apt-transport-https
-          - ca-certificates
-          - curl
-          - software-properties-common
-        state: present
         update_cache: yes
-
-    - name: Add Docker GPG key
-      shell: |
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-
-    - name: Add Docker repository
-      apt_repository:
-        repo: deb https://download.docker.com/linux/ubuntu focal stable
-        state: present
 
     - name: Install Docker
       apt:
-        name: docker-ce
+        name: docker.io
         state: present
-        update_cache: yes
 
-    - name: Ensure Docker service is running
+    - name: Start Docker service
       service:
         name: docker
         state: started
-        enabled: true
 
-    - name: Pull Laravel Docker image
-      shell: |
-        docker pull ayaomer/laravel-app:latest
+    - name: Enable Docker service on boot
+      service:
+        name: docker
+        enabled: yes
 
-    - name: Stop any existing container
-      shell: |
-        docker stop laravel-backend || true
+- name: Pull Laravel Docker image
+  docker_image:
+    name: ayaomer/laravel-app
+    tag: latest
+    source: pull
 
-    - name: Remove any existing container
-      shell: |
-        docker rm laravel-backend || true
+- name: Stop existing Laravel container if it exists
+  docker_container:
+    name: laravel-backend
+    state: stopped
+  ignore_errors: yes  # Ignore errors if the container does not exist
 
-    - name: Run Laravel Docker container
-      shell: |
-        docker run -d -p 5000:80 --name laravel-backend \
-        -e DB_CONNECTION=mysql \
-        -e DB_HOST={{ db_endpoint }} \
-        -e DB_PORT=3306 \
-        -e DB_DATABASE="mydb" \
-        -e DB_USERNAME="admin" \
-        -e DB_PASSWORD="12345678" \
-        ayaomer/laravel-app:latest
+- name: Remove existing Laravel container if it exists
+  docker_container:
+    name: laravel-backend
+    state: absent
+  ignore_errors: yes  # Ignore errors if the container does not exist
+
+- name: Run Laravel Docker container
+  docker_container:
+    name: laravel-backend
+    image: ayaomer/laravel-app:latest
+    state: started
+    restart_policy: always
+    published_ports:
+      - "5000:80"
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: "{{ db_endpoint }}"
+      DB_PORT: "3306"
+      DB_DATABASE: "mydb"
+      DB_USERNAME: "admin"
+      DB_PASSWORD: "12345678"
